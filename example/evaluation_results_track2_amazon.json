@@ -1,14 +1,14 @@
 {
     "type": "recommendation",
     "metrics": {
-        "top_1_hit_rate": 0.030927835051546393,
-        "top_3_hit_rate": 0.06958762886597938,
-        "top_5_hit_rate": 0.12628865979381443,
-        "average_hit_rate": 0.07560137457044673,
+        "top_1_hit_rate": 0.03608247422680412,
+        "top_3_hit_rate": 0.08505154639175258,
+        "top_5_hit_rate": 0.14690721649484537,
+        "average_hit_rate": 0.08934707903780069,
         "total_scenarios": 388,
-        "top_1_hits": 12,
-        "top_3_hits": 27,
-        "top_5_hits": 49
+        "top_1_hits": 14,
+        "top_3_hits": 33,
+        "top_5_hits": 57
     },
     "data_info": {
         "evaluated_count": 388,
