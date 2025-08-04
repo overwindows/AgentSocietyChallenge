@@ -3,11 +3,9 @@ import os
 import json
 from typing import List, Type, Dict, Any, Union
 from .tools import InteractionTool, CacheInteractionTool
-from .tools.evaluation_tool import RecommendationEvaluator, SimulationEvaluator
-from .agent.simulation_agent import SimulationAgent
+from .tools.evaluation_tool import RecommendationEvaluator
 from .llm import LLMBase
 from .agent.recommendation_agent import RecommendationAgent
-from .tasks.simulation_task import SimulationTask
 from .tasks.recommendation_task import RecommendationTask
 
 logger = logging.getLogger("websocietysimulator")
@@ -38,8 +36,6 @@ class Simulator:
         self.agent_class = None
         self.llm = None
         self.recommendation_evaluator = RecommendationEvaluator()
-        self.simulation_evaluator = SimulationEvaluator(device)
-        self.simulation_outputs = []
         self.evaluation_results = []
         logger.info("Simulator initialized")
 
@@ -76,13 +72,8 @@ class Simulator:
                 task_data = json.load(f)
                 task_type = task_data.get('type')
 
-                # Determine scenario type and create corresponding object
-                if task_type == 'user_behavior_simulation':
-                    task = SimulationTask(
-                        user_id=task_data['user_id'],
-                        item_id=task_data['item_id']
-                    )
-                elif task_type == 'recommendation':
+                # Create recommendation task
+                if task_type == 'recommendation':
                     task = RecommendationTask(
                         user_id=task_data['user_id'],
                         candidate_category=task_data['candidate_category'],
@@ -106,8 +97,8 @@ class Simulator:
         Args:
             agent_class: A class inheriting from the abstract Agent class.
         """
-        if not issubclass(agent_class, (SimulationAgent, RecommendationAgent)):
-            raise ValueError("Agent class must inherit from SimulationAgent or RecommendationAgent.")
+        if not issubclass(agent_class, RecommendationAgent):
+            raise ValueError("Agent class must inherit from RecommendationAgent.")
         self.agent_class = agent_class
         logger.info("Agent class set")
 
@@ -149,7 +140,7 @@ class Simulator:
 
         # 如果不启用多线程，使用原始的串行处理
         if not enable_threading:
-            self.simulation_outputs = []
+            outputs = []
             for index, task in enumerate(task_to_run):
                 # 检查是否超时
                 if timeout_seconds and (time.time() - start_time) > timeout_seconds:
@@ -174,7 +165,7 @@ class Simulator:
                         "task": task.to_dict(),
                         "error": "Forward method not implemented by participant."
                     }
-                self.simulation_outputs.append(result)
+                outputs.append(result)
                 logger.info(f"Simulation finished for task {index}")
         else:
             # 多线程处理
@@ -182,7 +173,7 @@ class Simulator:
             
             log_lock = Lock()
             cancel_event = Event()  # 添加取消事件标志
-            self.simulation_outputs = [None] * len(task_to_run)
+            outputs = [None] * len(task_to_run)
 
             def process_task(task_index_tuple):
                 from concurrent.futures import ThreadPoolExecutor, TimeoutError
@@ -251,7 +242,7 @@ class Simulator:
                     for future in as_completed(future_to_index, timeout=timeout_seconds):
                         try:
                             index, result = future.result()
-                            self.simulation_outputs[index] = result
+                            outputs[index] = result
                         except Exception as e:
                             logger.error(f"Task failed with error: {str(e)}")
                 except TimeoutError:
@@ -268,43 +259,39 @@ class Simulator:
 
         logger.info("Simulation finished")
         # 过滤掉None值（未完成的任务）
-        return self.simulation_outputs
+        self.last_outputs = outputs
+        return outputs
 
     def evaluate(self) -> Dict[str, Any]:
         """
-        Evaluate the simulation results using the loaded groundtruth data.
+        Evaluate the recommendation results using the loaded groundtruth data.
         Returns:
             Dictionary containing evaluation metrics
         """
-        logger.info("Evaluating simulation results")
-        if not self.simulation_outputs:
-            raise RuntimeError("No simulation outputs to evaluate. Run simulation first.")
+        logger.info("Evaluating recommendation results")
+        if not hasattr(self, 'last_outputs') or not self.last_outputs:
+            raise RuntimeError("No recommendation outputs to evaluate. Run simulation first.")
         
         # 检查数据条目数量
-        sim_count = len(self.simulation_outputs)
+        sim_count = len(self.last_outputs)
         gt_count = len(self.groundtruth_data)
         
         if sim_count != gt_count:
-            logger.warning(f"Warning: Number of simulation outputs ({sim_count}) does not match ground truth data ({gt_count})")
+            logger.warning(f"Warning: Number of recommendation outputs ({sim_count}) does not match ground truth data ({gt_count})")
             # 使用较小的数量
             eval_count = min(sim_count, gt_count)
             groundtruth_data = self.groundtruth_data[:eval_count]
-            self.simulation_outputs = self.simulation_outputs[:eval_count]
+            outputs = self.last_outputs[:eval_count]
         else:
             groundtruth_data = self.groundtruth_data
+            outputs = self.last_outputs
         
-        evaluation_results = {}
-        
-        # 根据agent类型选择评估方法
-        if issubclass(self.agent_class, RecommendationAgent):
-            evaluation_results = self._evaluate_recommendation(groundtruth_data)
-        elif issubclass(self.agent_class, SimulationAgent):
-            evaluation_results = self._evaluate_simulation(groundtruth_data)
+        evaluation_results = self._evaluate_recommendation(groundtruth_data, outputs)
         
         # 添加数据条目信息到评估结果中
         evaluation_results['data_info'] = {
             'evaluated_count': eval_count if sim_count != gt_count else sim_count,
-            'original_simulation_count': sim_count,
+            'original_recommendation_count': sim_count,
             'original_ground_truth_count': gt_count
         }
         
@@ -312,7 +299,7 @@ class Simulator:
         logger.info("Evaluation finished")
         return evaluation_results
 
-    def _evaluate_recommendation(self, ground_truth_data: List[Dict]) -> Dict[str, Any]:
+    def _evaluate_recommendation(self, ground_truth_data: List[Dict], outputs: List[Dict]) -> Dict[str, Any]:
         """
         Evaluate recommendation results using groundtruth
         """
@@ -320,7 +307,7 @@ class Simulator:
         gt_pois = [item['ground truth'] for item in ground_truth_data]
         
         pred_pois = []
-        for output in self.simulation_outputs:
+        for output in outputs:
             if output is not None:
                 pred_pois.append(output['output'])
             else:
@@ -337,27 +324,7 @@ class Simulator:
             'metrics': metrics.__dict__,
         }
 
-    def _evaluate_simulation(self, ground_truth_data: List[Dict]) -> Dict[str, Any]:
-        """
-        Evaluate simulation results
-        """
-        simulated_data = []
-        for output in self.simulation_outputs:
-            if output is not None:
-                simulated_data.append(output['output'])
-            else:
-                simulated_data.append({
-                    'stars': 0,
-                    'review': ''
-                })
-        metrics = self.simulation_evaluator.calculate_metrics(
-            simulated_data=simulated_data,
-            real_data=ground_truth_data
-        )
-        return {
-            'type': 'simulation',
-            'metrics': metrics.__dict__,
-        }
+
 
     def get_evaluation_history(self) -> List[Dict[str, Any]]:
         """

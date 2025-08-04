@@ -2,43 +2,30 @@
 
 ## 1. Overview of Agent Development
 
-### 1.1 Track-Specific Agent Inheritance
+### 1.1 Agent Inheritance
 
-To develop an agent, first inherit from the appropriate base class depending on your track:
+To develop an agent, inherit from the RecommendationAgent base class:
 
-- For Simulation Track: Inherit from `websocietysimulator.agent.SimulationAgent`
-- For Recommendation Track: Inherit from `websocietysimulator.agent.RecommendationAgent`
+- Inherit from `websocietysimulator.agent.RecommendationAgent`
 
 ### 1.2 Implementing the Workflow Method
 
 The key step is to override the `workflow()` method in your agent class. This method contains your agent's core logic.
 
-### 1.3 Track-Specific Return Values
+### 1.3 Return Values
 
-Different tracks require different return values from the `workflow()` method:
+The `workflow()` method must return a sorted list of candidate items:
 
-**Simulation Track**
 ```python
-def workflow(self) -> Dict[str, Any]:
-    # Must return a dictionary with:
-    return {
-        'stars': float,  # Rating (1.0-5.0)
-        'review': str,  # Review text
-    }
-```
-
-**Recommendation Track**
-```python
-def workflow(self) -> List[Dict[str, Any]]:
-    # Must return a sorted list of candidate
+def workflow(self) -> List[str]:
+    # Must return a sorted list of candidate item IDs
     return sorted_candidate_list
 ```
 
 ### 1.4 Example Implementations
-Example implementations for both tracks can be found in the `example` folder:
+Example implementations can be found in the `example` folder:
 
-- Simulation Track: `example/userBehaviorSimulation.py`
-- Recommendation Track: `example/recommendationAgent.py`
+- Recommendation Track: `example/RecAgent_baseline.py`
 
 
 ## 2. LLM Client and Embedding Model Integration

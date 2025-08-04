@@ -79,7 +79,7 @@ class RecReasoning(ReasoningBase):
 
 class MyRecommendationAgent(RecommendationAgent):
     """
-    Participant's implementation of SimulationAgent
+    Participant's implementation of RecommendationAgent
     """
     def __init__(self, llm:LLMBase):
         super().__init__(llm=llm)

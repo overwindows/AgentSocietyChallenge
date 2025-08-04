@@ -10,9 +10,7 @@
 
 Welcome to the **WWW'25 AgentSociety Challenge**! This repository provides the tools and framework needed to participate in a competition that focuses on building **LLM Agents** for **user behavior simulation** and **recommendation systems** based on open source datasets.
 
-Participants are tasked with developing intelligent agents that interact with a simulated environment and perform specific tasks in two competition tracks:
-1. **User Behavior Simulation Track**: Agents simulate user behavior, including generating reviews and ratings.
-2. **Recommendation Track**: Agents generate recommendations based on provided contextual data.
+Participants are tasked with developing intelligent agents that interact with a simulated environment and perform specific tasks in the **Recommendation Track**: Agents generate recommendations based on provided contextual data.
 
 This repository includes:
 - The core library `websocietysimulator` for environment simulation.
@@ -26,12 +24,12 @@ This repository includes:
 ### 1. **`websocietysimulator/`**  
 This is the core library containing all source code required for the competition.
 
-- **`agents/`**: Contains base agent classes (`SimulationAgent`, `RecommendationAgent`) and their abstractions. Participants must extend these classes for their implementations.
-- **`task/`**: Defines task structures for each track (`SimulationTask`, `RecommendationTask`).
+- **`agents/`**: Contains base agent classes (`RecommendationAgent`) and their abstractions. Participants must extend these classes for their implementations.
+- **`task/`**: Defines task structures for the recommendation track (`RecommendationTask`).
 - **`llm/`**: Contains base LLM client classes (`DeepseekLLM`, `OpenAILLM`).
 - **`tools/`**: Includes utility tools:
   - `InteractionTool`: A utility for interacting with the Yelp dataset during simulations.
-  - `EvaluationTool`: Provides comprehensive metrics for both recommendation (HR@1/3/5) and simulation tasks (RMSE, sentiment analysis).
+  - `EvaluationTool`: Provides comprehensive metrics for recommendation tasks (HR@1/3/5).
 - **`simulator.py`**: The main simulation framework, which handles task and groundtruth setting, evaluation and agent execution.
 
 ### 2. **`example/`**  
@@ -108,12 +106,12 @@ You can name the dataset directory whatever you prefer (e.g., `dataset/`).
 
 ### 4. Develop Your Agent
 
-Create a custom agent by extending either `SimulationAgent` or `RecommendationAgent`. Refer to the examples in the `example/` directory. Here's a quick template:
+Create a custom agent by extending `RecommendationAgent`. Refer to the examples in the `example/` directory. Here's a quick template:
 
 ```python
-from yelpsimulator.agents.simulation_agent import SimulationAgent
+from websocietysimulator.agent import RecommendationAgent
 
-class MySimulationAgent(SimulationAgent):
+class MyRecommendationAgent(RecommendationAgent):
     def workflow(self):
         # The simulator will automatically set the task for your agent. You can access the task by `self.task` to get task information.
         print(self.task)
@@ -122,19 +120,15 @@ class MySimulationAgent(SimulationAgent):
         # For example, you can get the user information by `interaction_tool.get_user(user_id="example_user_id")`.
         # You can also get the item information by `interaction_tool.get_item(item_id="example_item_id")`.
         # You can also get the reviews by `interaction_tool.get_reviews(review_id="example_review_id")`.
-        user_info = interaction_tool.get_user(user_id="example_user_id")
+        user_info = self.interaction_tool.get_user(user_id="example_user_id")
 
         # Implement your logic here
         
-        # Finally, you need to return the result in the format of `stars` and `review`.
         # For recommendation track, you need to return a candidate list of items, in which the first item is the most recommended item.
-        stars = 4.0
-        review = "Great experience!"
-        return stars, review
+        return ['item_id_1', 'item_id_2', 'item_id_3']
 ```
 
 - Check out the [Tutorial](./tutorials/agent_development.md) for Agent Development.
-- Baseline User Behavior Simulation Agent: [Baseline User Behavior Simulation Agent](./example/ModelingAgent_baseline.py).
 - Baseline Recommendation Agent: [Baseline Recommendation Agent](./example/RecAgent_baseline.py).
 ---
 
@@ -144,7 +138,7 @@ Run the simulation using the provided `Simulator` class:
 
 ```python
 from websocietysimulator import Simulator
-from my_agent import MySimulationAgent
+from my_agent import MyRecommendationAgent
 
 # Initialize Simulator
 simulator = Simulator(data_dir="path/to/your/dataset", device="auto", cache=False)
@@ -156,10 +150,10 @@ simulator = Simulator(data_dir="path/to/your/dataset", device="auto", cache=Fals
 simulator.set_task_and_groundtruth(task_dir="path/to/task_directory", groundtruth_dir="path/to/groundtruth_directory")
 
 # Set your custom agent
-simulator.set_agent(MySimulationAgent)
+simulator.set_agent(MyRecommendationAgent)
 
 # Set LLM client
-simulator.set_llm(DeepseekLLM(api_key="Your API Key"))
+simulator.set_llm(InfinigenceLLM(api_key="Your API Key"))
 
 # Run evaluation
 # If you don't set the number of tasks, the simulator will run all tasks.
@@ -175,13 +169,11 @@ evaluation_results = simulator.evaluate()
 ### 6. Submit your agent
 - You should register your team firstly in the competition homepage ([Homepage](https://tsinghua-fib-lab.github.io/AgentSocietyChallenge)).
 - Submit your solution through the submission button at the specific track page. (the submission button is at the top right corner of the page)
-  - [User Modeling Track](https://tsinghua-fib-lab.github.io/AgentSocietyChallenge/pages/behavior-track.html)
   - [Recommendation Track](https://tsinghua-fib-lab.github.io/AgentSocietyChallenge/pages/recommendation-track.html)
   - Please register your team first.
   - When you submit your agent, please carefully **SELECT the TRACK you want to submit to.**
 - **The content of your submission should be a .py file containing your agent (Only one `{your_team}.py` file without evaluation code).**
 - Example submissions:
-  - For Track 1: [submission_1](example/trackOneSubmission_example.zip)
   - For Track 2: [submission_2](example/trackTwoSubmission_example.zip)
 
 ---

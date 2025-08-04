@@ -1,6 +1,11 @@
-from typing import Any, List
+from typing import List
 from langchain_core.embeddings import Embeddings
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+from tenacity import (
+    retry, 
+    stop_after_attempt, 
+    wait_exponential, 
+    retry_if_exception_type
+)
 import requests
 import logging
 
@@ -11,8 +16,8 @@ class InfinigenceEmbeddings(Embeddings):
     def __init__(
         self,
         api_key: str,
-        model: str = "bge-m3",
-        infinity_api_url: str = "https://cloud.infini-ai.com/maas/v1"
+        model: str = "sentence-transformers-all-MiniLM-L6-v2",
+        infinity_api_url: str = "https://api.sambanova.ai/v1"
     ):
         self.api_key = api_key
         self.model = model

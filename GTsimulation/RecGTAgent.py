@@ -98,7 +98,7 @@ class ReasoningIO(ReasoningBase):
 
 class MyRecommendationAgent(RecommendationAgent):
     """
-    Participant's implementation of SimulationAgent.
+    Participant's implementation of RecommendationAgent.
     """
     def __init__(self):
 
