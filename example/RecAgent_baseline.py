@@ -164,7 +164,7 @@ class MyRecommendationAgent(RecommendationAgent):
 if __name__ == "__main__":
     task_set = "amazon" # "goodreads" or "yelp"
     # Initialize Simulator
-    simulator = Simulator(data_dir="your data_dir", device="auto", cache=True)
+    simulator = Simulator(data_dir="/nvmedata/chenw/AgentRecBench/process_data/output_data_all", device="auto", cache=True)
 
     # Load scenarios
     simulator.set_task_and_groundtruth(task_dir=f"./track2/{task_set}/tasks", groundtruth_dir=f"./track2/{task_set}/groundtruth")
