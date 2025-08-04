@@ -173,7 +173,7 @@ if __name__ == "__main__":
     simulator.set_agent(MyRecommendationAgent)
 
     # Set LLM client
-    simulator.set_llm(InfinigenceLLM(api_key="your api_key"))
+    simulator.set_llm(InfinigenceLLM(api_key="042ca35c-beaf-4f5b-8033-9170556e5251"))
 
     # Run evaluation
     # If you don't set the number of tasks, the simulator will run all tasks.

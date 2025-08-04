@@ -16,7 +16,7 @@ def llm_response(prompt: str, model: str = "deepseek-chat", temperature: float =
 
     import http.client
 
-    conn = http.client.HTTPSConnection("cloud.infini-ai.com")
+    conn = http.client.HTTPSConnection("api.sambanova.ai")
 
     payload_dict = {
         "model": "qwen2.5-72b-instruct",
