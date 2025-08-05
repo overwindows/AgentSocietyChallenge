@@ -7,7 +7,7 @@ import logging
 logger = logging.getLogger("websocietysimulator")
 
 class LLMBase:
-    def __init__(self, model: str = "Meta-Llama-3.1-8B-Instruct"):
+    def __init__(self, model: str = "DeepSeek-V3-0324"):
         """
         Initialize LLM base class
         
@@ -42,13 +42,13 @@ class LLMBase:
         raise NotImplementedError("Subclasses need to implement this method")
 
 class InfinigenceLLM(LLMBase):
-    def __init__(self, api_key: str, model: str = "Meta-Llama-3.1-8B-Instruct"):
+    def __init__(self, api_key: str, model: str = "DeepSeek-V3-0324"):
         """
         Initialize SambaNova LLM
         
         Args:
             api_key: SambaNova API key
-            model: Model name, defaults to Meta-Llama-3.1-8B-Instruct
+            model: Model name, defaults to DeepSeek-V3-0324
         """
         super().__init__(model)
         self.client = OpenAI(
