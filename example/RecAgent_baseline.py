@@ -10,7 +10,7 @@ import logging
 import time
 logging.basicConfig(level=logging.INFO)
 
-DATA_DIR='/home/overwindows/AgentRecBench/process_data/output_data_all'
+DATA_DIR='/mnt/q/AgentRecBench/process_data/output_data_all'
 
 def num_tokens_from_string(string: str) -> int:
     encoding = tiktoken.get_encoding("cl100k_base")

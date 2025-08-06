@@ -12,7 +12,7 @@ class LLMBase:
         Initialize LLM base class
         
         Args:
-            model: Model name, defaults to Meta-Llama-3.1-8B-Instruct
+            model: Model name
         """
         self.model = model
         
@@ -53,7 +53,7 @@ class InfinigenceLLM(LLMBase):
         super().__init__(model)
         self.client = OpenAI(
             api_key=api_key,
-            base_url="https://api.sambanova.ai/v1"
+            base_url="http://qwen2358gpu8lb-external.dlis-coreranker.ingress.cus.microsoft-falcon.net:11000/v1"
         )
         self.embedding_model = InfinigenceEmbeddings(api_key=api_key)
         
